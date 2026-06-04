@@ -1,0 +1,13 @@
+kind: API
+apiVersion: api.ibm.com/v1
+metadata:
+  name: customer_order_service
+  version: 1.0.0
+  namespace: customer-details
+  tags: []
+  type: REST
+spec:
+  api-spec:
+    $path: ./customer_order_service-spec.yml
+  policy-sequence:
+    - $ref: customer-details:policy-sequence:1.0

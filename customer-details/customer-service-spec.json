@@ -1,0 +1,506 @@
+openapi: 3.0.3
+info:
+  title: Customer Order Service
+  description: |
+    REST API for accessing customer and order data with support for:
+    - Retrieving customers with addresses and orders
+    - Retrieving orders with shipping information
+    - Filtering and pagination support
+    - Query-based filtering
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: /api
+    description: JSON2API service endpoint
+tags:
+  - name: Customers
+    description: Customer management operations
+  - name: Orders
+    description: Order management operations
+paths:
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: Retrieve all customers
+      description: >
+        Retrieve a list of customers with optional filtering and pagination.
+
+
+        **Query Format:**
+
+        The `q` parameter accepts expressions in the format: `field operator
+        value`
+
+
+        Supported operators:
+
+        - `=` - Equals
+
+        - `>` - Greater than
+
+        - `<` - Less than
+
+        - `>=` - Greater than or equal to
+
+        - `<=` - Less than or equal to
+
+
+        **Examples:**
+
+        - `id > 5` - Get customers where id is greater than 5
+
+        - `name = John` - Get customers where name equals John
+
+
+        Results are automatically sorted by the `id` field in ascending order.
+      operationId: getCustomers
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: >-
+            Query string in format `field operator value` (e.g., `id > 5` or
+            `name = John`)
+          schema:
+            type: string
+          examples:
+            idFilter:
+              value: id > 5
+              summary: Filter by ID greater than 5
+            nameFilter:
+              value: name = John Doe
+              summary: Filter by name
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 10000
+          example: 10
+        - name: offset
+          in: query
+          required: false
+          description: Number of items to skip (for pagination)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Successful response with customer list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerArray'
+              example:
+                - id: 1
+                  email: lucas.bill@example.com
+                  name: Lucas Bill
+                  address:
+                    city: Boston
+                    countryRegion: US
+                    id: 1
+                    postalCode: '02122'
+                    stateProvince: Massachusetts
+                    street: 999 Croissant Bl
+                  orders:
+                    - carrier: ups
+                      createdAt: '2020-08-04'
+                      customerId: 1
+                      id: 19
+                      shippingCost: 2
+                      trackingId: 1Z881F5V0397269080
+                - id: 2
+                  email: mandy.jones@example.com
+                  name: Mandy Jones
+                  address:
+                    city: Round Rock
+                    countryRegion: US
+                    id: 2
+                    postalCode: '78664'
+                    stateProvince: Texas
+                    street: 1111 Dell Way
+                  orders:
+                    - carrier: ups
+                      createdAt: '2020-08-04'
+                      customerId: 2
+                      id: 8
+                      shippingCost: 3
+                      trackingId: 1Z4V180W0324616505
+        '400':
+          description: Bad Request - Invalid limit or offset parameter
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                badLimit:
+                  value: Bad limit
+                badOffset:
+                  value: Bad offset
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: string
+              example: Error retrieving customers
+  /customers/{id}:
+    get:
+      tags:
+        - Customers
+      summary: Retrieve a specific customer by ID
+      description: >-
+        Retrieve a specific customer by their numeric ID, including address and
+        order information.
+      operationId: getCustomerById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric ID of the customer
+          schema:
+            type: integer
+            minimum: 1
+          example: 1
+      responses:
+        '200':
+          description: Successful response with customer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+              example:
+                id: 1
+                email: lucas.bill@example.com
+                name: Lucas Bill
+                address:
+                  city: Boston
+                  countryRegion: US
+                  id: 1
+                  postalCode: '02122'
+                  stateProvince: Massachusetts
+                  street: 999 Croissant Bl
+                orders:
+                  - carrier: ups
+                    createdAt: '2020-08-04'
+                    customerId: 1
+                    id: 19
+                    shippingCost: 2
+                    trackingId: 1Z881F5V0397269080
+                  - carrier: ups
+                    createdAt: '2020-08-01'
+                    customerId: 1
+                    id: 20
+                    shippingCost: 1
+                    trackingId: 1Z4V180W0324616505
+        '400':
+          description: Bad Request - Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: string
+              example: Bad id
+        '404':
+          description: Not Found - Customer does not exist
+          content:
+            application/json:
+              schema:
+                type: string
+              example: ''
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: string
+              example: Error retrieving customer
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Retrieve all orders
+      description: >
+        Retrieve a list of orders with optional filtering and pagination.
+
+
+        **Query Format:**
+
+        The `q` parameter accepts expressions in the format: `field operator
+        value`
+
+
+        Supported operators:
+
+        - `=` - Equals
+
+        - `>` - Greater than
+
+        - `<` - Less than
+
+        - `>=` - Greater than or equal to
+
+        - `<=` - Less than or equal to
+
+
+        **Examples:**
+
+        - `id > 10` - Get orders where id is greater than 10
+
+        - `customerId = 5` - Get orders for customer ID 5
+
+        - `carrier = ups` - Get orders shipped via UPS
+
+
+        Results are automatically sorted by the `id` field in ascending order.
+      operationId: getOrders
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: >-
+            Query string in format `field operator value` (e.g., `customerId =
+            5`)
+          schema:
+            type: string
+          examples:
+            customerFilter:
+              value: customerId = 5
+              summary: Filter by customer ID
+            carrierFilter:
+              value: carrier = ups
+              summary: Filter by carrier
+            idFilter:
+              value: id > 10
+              summary: Filter by ID greater than 10
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of items to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 10000
+          example: 10
+        - name: offset
+          in: query
+          required: false
+          description: Number of items to skip (for pagination)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Successful response with order list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderArray'
+              example:
+                - carrier: ups
+                  createdAt: '2020-08-04'
+                  customerId: 1
+                  id: 19
+                  shippingCost: 2
+                  trackingId: 1Z881F5V0397269080
+                - carrier: ups
+                  createdAt: '2020-08-01'
+                  customerId: 1
+                  id: 20
+                  shippingCost: 1
+                  trackingId: 1Z4V180W0324616505
+        '400':
+          description: Bad Request - Invalid limit or offset parameter
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                badLimit:
+                  value: Bad limit
+                badOffset:
+                  value: Bad offset
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: string
+              example: Error retrieving orders
+  /orders/{id}:
+    get:
+      tags:
+        - Orders
+      summary: Retrieve a specific order by ID
+      description: >-
+        Retrieve a specific order by its numeric ID, including shipping
+        information.
+      operationId: getOrderById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Numeric ID of the order
+          schema:
+            type: integer
+            minimum: 1
+          example: 19
+      responses:
+        '200':
+          description: Successful response with order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                carrier: ups
+                createdAt: '2020-08-04'
+                customerId: 1
+                id: 19
+                shippingCost: 2
+                trackingId: 1Z881F5V0397269080
+        '400':
+          description: Bad Request - Invalid ID format
+          content:
+            application/json:
+              schema:
+                type: string
+              example: Bad id
+        '404':
+          description: Not Found - Order does not exist
+          content:
+            application/json:
+              schema:
+                type: string
+              example: ''
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: string
+              example: Error retrieving order
+components:
+  schemas:
+    Customer:
+      type: object
+      description: Customer entity with address and order information
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: integer
+          description: Unique customer identifier
+          example: 1
+        email:
+          type: string
+          format: email
+          description: Customer email address
+          example: lucas.bill@example.com
+        name:
+          type: string
+          description: Customer full name
+          example: Lucas Bill
+        address:
+          $ref: '#/components/schemas/Address'
+        orders:
+          type: array
+          description: List of orders associated with this customer
+          items:
+            $ref: '#/components/schemas/Order'
+    CustomerArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/Customer'
+    Address:
+      type: object
+      description: Physical address information
+      required:
+        - id
+        - city
+        - countryRegion
+      properties:
+        id:
+          type: integer
+          description: Unique address identifier
+          example: 1
+        city:
+          type: string
+          description: City name
+          example: Boston
+        countryRegion:
+          type: string
+          description: Country or region code
+          example: US
+        postalCode:
+          type: string
+          description: Postal or ZIP code
+          example: '02122'
+        stateProvince:
+          type: string
+          description: State or province name
+          example: Massachusetts
+        street:
+          type: string
+          description: Street address
+          example: 999 Croissant Bl
+    Order:
+      type: object
+      description: Order entity with shipping information
+      required:
+        - id
+        - customerId
+        - carrier
+        - createdAt
+      properties:
+        id:
+          type: integer
+          description: Unique order identifier
+          example: 19
+        customerId:
+          type: integer
+          description: ID of the customer who placed the order
+          example: 1
+        carrier:
+          type: string
+          description: Shipping carrier name
+          example: ups
+        createdAt:
+          type: string
+          format: date
+          description: Order creation date (YYYY-MM-DD)
+          example: '2020-08-04'
+        shippingCost:
+          type: integer
+          description: Shipping cost in currency units
+          example: 2
+        trackingId:
+          type: string
+          description: Carrier tracking identifier
+          example: 1Z881F5V0397269080
+    OrderArray:
+      type: array
+      items:
+        $ref: '#/components/schemas/Order'
+    Error:
+      type: object
+      description: Error response
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: Resource not found

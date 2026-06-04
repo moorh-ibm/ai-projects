@@ -1,0 +1,91 @@
+kind: MCPTools
+apiVersion: api.ibm.com/v1
+metadata:
+  name: customer-order-service-tool-igwsu
+  namespace: customer-details
+  version: '1.0'
+  tags: []
+spec:
+  tools:
+    - name: get_customer
+      description: >-
+        This tool retrieves a specific customer's details, including their
+        address and order history, by their unique numeric ID. 1. It can fetch
+        detailed customer information. 2. It can retrieve associated address
+        data. 3. It can include the customer's order information.
+      inputSchema:
+        type: object
+        properties:
+          id:
+            description: The numeric ID of the customer.
+            x-parameter-location: path
+            type: integer
+            minimum: 1
+        required:
+          - id
+      title: Retrieve a specific customer by ID
+      x-api-binding:
+        operationPath: /customers/{id}
+        operationMethod: GET
+        api:
+          $path: ./customer-order-service-spec-igwsu.json
+    - name: list_ecommerce_orders
+      description: >-
+        This tool fetches a list of orders with optional filtering and
+        pagination capabilities. 1. It can filter orders using a query parameter
+        with various operators. 2. It can limit and offset results for
+        pagination. 3. Results are sorted by order ID in ascending order.
+      inputSchema:
+        type: object
+        properties:
+          q:
+            description: >-
+              A query string to filter results in the format 'field operator
+              value' (e.g., 'customerId = 5'). Only include if the user
+              explicitly provides it.
+            x-parameter-location: query
+            type: string
+          limit:
+            description: >-
+              The maximum number of items to return. Only include if the user
+              explicitly provides it.
+            x-parameter-location: query
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 10000
+          offset:
+            description: >-
+              The number of items to skip for pagination purposes. Only include
+              if the user explicitly provides it.
+            x-parameter-location: query
+            type: integer
+            minimum: 0
+            default: 0
+      title: Retrieve all orders
+      x-api-binding:
+        operationPath: /orders
+        operationMethod: GET
+        api:
+          $path: ./customer-order-service-spec-igwsu.json
+    - name: get_order
+      description: >-
+        This tool retrieves a specific order's details, including shipping
+        information, by its unique numeric ID. 1. It can fetch detailed order
+        information. 2. It can retrieve associated shipping data.
+      inputSchema:
+        type: object
+        properties:
+          id:
+            description: The numeric ID of the order.
+            x-parameter-location: path
+            type: integer
+            minimum: 1
+        required:
+          - id
+      title: Retrieve a specific order by ID
+      x-api-binding:
+        operationPath: /orders/{id}
+        operationMethod: GET
+        api:
+          $path: ./customer-order-service-spec-igwsu.json

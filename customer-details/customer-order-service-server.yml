@@ -1,0 +1,17 @@
+kind: MCPServer
+apiVersion: api.ibm.com/v1
+metadata:
+  name: customer-order-service-server-igwsu
+  namespace: customer-details
+  version: '1.0'
+  tags: []
+spec:
+  title: Customer Order Service MCP Server
+  protocolVersion: V2025_11_25
+  quota:
+    $ref: customer-details:customer-details-quota-igwsu:1.0
+  policy-sequence:
+    - $ref: customer-details:customer-details-freeflowpolicysequence-igwsu:1.0
+  capabilities:
+    tools:
+      - $ref: customer-details:customer-order-service-tool-igwsu:1.0
