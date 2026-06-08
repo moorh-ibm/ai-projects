@@ -24,6 +24,8 @@ tags:
 paths:
   /customers:
     get:
+      security:
+        - apiKey: []
       tags:
         - Customers
       summary: Retrieve all customers
@@ -81,6 +83,7 @@ paths:
           description: Maximum number of items to return
           schema:
             type: integer
+            format: int32
             minimum: 1
             maximum: 10000
             default: 10000
@@ -91,6 +94,7 @@ paths:
           description: Number of items to skip (for pagination)
           schema:
             type: integer
+            format: int32
             minimum: 0
             default: 0
           example: 0
@@ -156,6 +160,8 @@ paths:
               example: Error retrieving customers
   /customers/{id}:
     get:
+      security:
+        - apiKey: []
       tags:
         - Customers
       summary: Retrieve a specific customer by ID
@@ -170,6 +176,7 @@ paths:
           description: Numeric ID of the customer
           schema:
             type: integer
+            format: int32
             minimum: 1
           example: 1
       responses:
@@ -226,6 +233,8 @@ paths:
               example: Error retrieving customer
   /orders:
     get:
+      security:
+        - apiKey: []
       tags:
         - Orders
       summary: Retrieve all orders
@@ -288,6 +297,7 @@ paths:
           description: Maximum number of items to return
           schema:
             type: integer
+            format: int32
             minimum: 1
             maximum: 10000
             default: 10000
@@ -298,6 +308,7 @@ paths:
           description: Number of items to skip (for pagination)
           schema:
             type: integer
+            format: int32
             minimum: 0
             default: 0
           example: 0
@@ -341,6 +352,8 @@ paths:
               example: Error retrieving orders
   /orders/{id}:
     get:
+      security:
+        - apiKey: []
       tags:
         - Orders
       summary: Retrieve a specific order by ID
@@ -355,6 +368,7 @@ paths:
           description: Numeric ID of the order
           schema:
             type: integer
+            format: int32
             minimum: 1
           example: 19
       responses:
@@ -393,6 +407,12 @@ paths:
                 type: string
               example: Error retrieving order
 components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication
   schemas:
     Customer:
       type: object
@@ -403,9 +423,10 @@ components:
         - name
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           description: Unique customer identifier
-          example: 1
+          example: "550e8400-e29b-41d4-a716-446655440000"
         email:
           type: string
           format: email
@@ -420,10 +441,12 @@ components:
         orders:
           type: array
           description: List of orders associated with this customer
+          maxItems: 1000
           items:
             $ref: '#/components/schemas/Order'
     CustomerArray:
       type: array
+      maxItems: 10000
       items:
         $ref: '#/components/schemas/Customer'
     Address:
@@ -436,6 +459,7 @@ components:
       properties:
         id:
           type: integer
+          format: int32
           description: Unique address identifier
           example: 1
         city:
@@ -468,13 +492,15 @@ components:
         - createdAt
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           description: Unique order identifier
-          example: 19
+          example: "660e8400-e29b-41d4-a716-446655440019"
         customerId:
-          type: integer
+          type: string
+          format: uuid
           description: ID of the customer who placed the order
-          example: 1
+          example: "550e8400-e29b-41d4-a716-446655440000"
         carrier:
           type: string
           description: Shipping carrier name
@@ -486,6 +512,7 @@ components:
           example: '2020-08-04'
         shippingCost:
           type: integer
+          format: int32
           description: Shipping cost in currency units
           example: 2
         trackingId:
@@ -494,6 +521,7 @@ components:
           example: 1Z881F5V0397269080
     OrderArray:
       type: array
+      maxItems: 10000
       items:
         $ref: '#/components/schemas/Order'
     Error:
